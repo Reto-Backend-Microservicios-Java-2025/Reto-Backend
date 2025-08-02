@@ -1,0 +1,97 @@
+spring:
+  application:
+    name: gateway-service
+  main:
+    web-application-type: reactive # Explicitly set to reactive
+  cloud:
+    gateway:
+      server:
+        webflux:
+          global-cors:
+            cors-configurations:
+              '[/**]':
+                          allowedOriginPatterns:
+                            - "http://localhost:*"
+                            - "https://localhost:*"
+                          allowedOrigins:
+                            - "http://localhost:3000"
+                            - "http://localhost:4200"
+                            - "http://localhost:8080"
+                            - "http://localhost:8010"
+                            - "http://localhost:8050"
+                            - "http://localhost:8020"
+                            - "http://localhost:8030"
+                          allowedMethods:
+                            - GET
+                            - POST
+                            - PUT
+                            - DELETE
+                            - OPTIONS
+                            - PATCH
+                          allowedHeaders: "*"
+                          allowCredentials: true
+                          maxAge: 3600
+          routes:
+            # Customer Service (pendiente de implementar)
+                    #- id: customer-service
+                    #  uri: lb://customer-service
+                    #  predicates:
+                    #    - Path=/customer-service/**
+                    #  filters:
+                    #    - StripPrefix=1
+                    # Product Service
+                    - id: product-service
+                      uri: lb://product-service
+                      predicates:
+                        - Path=/product-service/**
+                      filters:
+                        - StripPrefix=1
+                    # IAM Service
+                    #- id: iam-service
+                    #  uri: lb://iam-service
+                    #  predicates:
+                    #    - Path=/iam-service/**
+                    #  filters:
+                    #    - StripPrefix=1
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+
+server:
+  port: 8010
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8090/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    # Configuración para usar el gateway como servidor base
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      # Customer Service
+      #- name: Customer Service
+      #  url: /customer-service/v3/api-docs
+      # Product Service
+      - name: Product Service
+        url: /product-service/v3/api-docs
+      # IAM Service
+      #- name: IAM Service
+      #  url: /iam-service/v3/api-docs
