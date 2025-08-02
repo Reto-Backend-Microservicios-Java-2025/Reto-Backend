@@ -5,35 +5,33 @@
  */
 package pe.upc.edu.productservice.domain.model.aggregates;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import pe.upc.edu.productservice.domain.model.commands.CreateProductCommand;
 import pe.upc.edu.productservice.domain.model.valueobjects.ProductType;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "products")
+@NoArgsConstructor
+@AllArgsConstructor
+@Table("products")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @Column("product_type")
     private ProductType productType;
 
-    @Column(nullable = false)
+    @Column("name")
     private String name;
 
-    @Column(nullable = false, precision = 10)
+    @Column("balance")
     private Double balance;
-
-    public Product() {
-        this.productType = ProductType.CREDIT_CARD;
-        this.name = "";
-        this.balance = 0.0;
-    }
 
     public Product(ProductType productType, String name, Double balance) {
         this.productType = productType;

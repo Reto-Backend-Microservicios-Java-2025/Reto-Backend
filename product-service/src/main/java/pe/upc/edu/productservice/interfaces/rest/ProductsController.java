@@ -1,7 +1,6 @@
 package pe.upc.edu.productservice.interfaces.rest;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.upc.edu.productservice.domain.model.commands.DeleteProductCommand;
 import pe.upc.edu.productservice.domain.model.queries.GetAllProductsQuery;
@@ -14,11 +13,8 @@ import pe.upc.edu.productservice.interfaces.rest.resources.UpdateProductResource
 import pe.upc.edu.productservice.interfaces.rest.transform.CreateProductCommandFromResourceAssembler;
 import pe.upc.edu.productservice.interfaces.rest.transform.ProductResourceFromEntityAssembler;
 import pe.upc.edu.productservice.interfaces.rest.transform.UpdateProductCommandFromResourceAssembler;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -34,135 +30,58 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody CreateProductResource createProductResource) {
-        try {
-            var createProductCommand = CreateProductCommandFromResourceAssembler.toCommandFromResource(createProductResource);
-            var productId = productCommandService.handle(createProductCommand);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ProductResource> createProduct(@RequestBody CreateProductResource createProductResource) {
+        var createProductCommand = CreateProductCommandFromResourceAssembler.toCommandFromResource(createProductResource);
 
-            if (productId == 0L) {
-                return ResponseEntity.badRequest()
-                        .body(createErrorResponse("Failed to create product", "Invalid product data provided"));
-            }
-
-            var getProductByIdQuery = new GetProductByIdQuery(productId);
-            var product = productQueryService.handle(getProductByIdQuery);
-
-            if (product.isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(createErrorResponse("Product creation failed", "Could not retrieve created product"));
-            }
-
-            var productResource = ProductResourceFromEntityAssembler.toResourceFromEntity(product.get());
-            return new ResponseEntity<>(productResource, HttpStatus.CREATED);
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(createErrorResponse("Invalid input", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Internal server error", "An unexpected error occurred"));
-        }
+        return productCommandService.handle(createProductCommand)
+                .filter(productId -> productId > 0L)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Failed to create product")))
+                .flatMap(productId -> {
+                    var getProductByIdQuery = new GetProductByIdQuery(productId);
+                    return productQueryService.handle(getProductByIdQuery);
+                })
+                .map(ProductResourceFromEntityAssembler::toResourceFromEntity)
+                .onErrorMap(IllegalArgumentException.class, ex -> ex)
+                .onErrorMap(throwable -> new RuntimeException("An unexpected error occurred", throwable));
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResource>> getAllProducts() {
-        try {
-            var getAllProductsQuery = new GetAllProductsQuery();
-            var products = productQueryService.handle(getAllProductsQuery);
-            var productResources = products.stream()
-                    .map(ProductResourceFromEntityAssembler::toResourceFromEntity)
-                    .toList();
-            return ResponseEntity.ok(productResources);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
-        }
+    public Flux<ProductResource> getAllProducts() {
+        var getAllProductsQuery = new GetAllProductsQuery();
+        return productQueryService.handle(getAllProductsQuery)
+                .map(ProductResourceFromEntityAssembler::toResourceFromEntity)
+                .onErrorResume(throwable -> Flux.error(new RuntimeException("Failed to retrieve products", throwable)));
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<?> getProductById(@PathVariable Long productId) {
-        try {
-            if (productId == null || productId <= 0) {
-                return ResponseEntity.badRequest()
-                        .body(createErrorResponse("Invalid product ID", "Product ID must be a positive number"));
-            }
-
-            var getProductByIdQuery = new GetProductByIdQuery(productId);
-            var product = productQueryService.handle(getProductByIdQuery);
-
-            if (product.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(createErrorResponse("Product not found", "No product found with ID: " + productId));
-            }
-
-            var productResource = ProductResourceFromEntityAssembler.toResourceFromEntity(product.get());
-            return ResponseEntity.ok(productResource);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Internal server error", "An unexpected error occurred"));
-        }
+    public Mono<ProductResource> getProductById(@PathVariable Long productId) {
+        var getProductByIdQuery = new GetProductByIdQuery(productId);
+        return productQueryService.handle(getProductByIdQuery)
+                .map(ProductResourceFromEntityAssembler::toResourceFromEntity)
+                .switchIfEmpty(Mono.error(new RuntimeException("Product not found with ID: " + productId)))
+                .onErrorMap(IllegalArgumentException.class, ex -> ex)
+                .onErrorMap(throwable -> new RuntimeException("Failed to retrieve product", throwable));
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<?> updateProduct(@PathVariable Long productId, @RequestBody UpdateProductResource updateProductResource) {
-        try {
-            if (productId == null || productId <= 0) {
-                return ResponseEntity.badRequest()
-                        .body(createErrorResponse("Invalid product ID", "Product ID must be a positive number"));
-            }
+    public Mono<ProductResource> updateProduct(@PathVariable Long productId,
+                                               @RequestBody UpdateProductResource updateProductResource) {
+        var updateProductCommand = UpdateProductCommandFromResourceAssembler
+                .toCommandFromResource(productId, updateProductResource);
 
-            var updateProductCommand = UpdateProductCommandFromResourceAssembler.toCommandFromResource(productId, updateProductResource);
-            var updatedProduct = productCommandService.handle(updateProductCommand);
-
-            if (updatedProduct.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(createErrorResponse("Update failed", "Could not update product with ID: " + productId));
-            }
-
-            var productResource = ProductResourceFromEntityAssembler.toResourceFromEntity(updatedProduct.get());
-            return ResponseEntity.ok(productResource);
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(createErrorResponse("Invalid input", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Internal server error", "An unexpected error occurred"));
-        }
+        return productCommandService.handle(updateProductCommand)
+                .map(ProductResourceFromEntityAssembler::toResourceFromEntity)
+                .onErrorMap(IllegalArgumentException.class, ex -> ex)
+                .onErrorMap(throwable -> new RuntimeException("Failed to update product", throwable));
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long productId) {
-        try {
-            if (productId == null || productId <= 0) {
-                return ResponseEntity.badRequest()
-                        .body(createErrorResponse("Invalid product ID", "Product ID must be a positive number"));
-            }
-
-            var deleteProductCommand = new DeleteProductCommand(productId);
-            productCommandService.handle(deleteProductCommand);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Product with ID " + productId + " successfully deleted");
-            response.put("status", "success");
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Delete failed", "Could not delete product with ID: " + productId));
-        }
-    }
-
-    /**
-     * Helper method to create consistent error response format
-     */
-    private Map<String, String> createErrorResponse(String error, String message) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", error);
-        errorResponse.put("message", message);
-        errorResponse.put("status", "error");
-        return errorResponse;
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteProduct(@PathVariable Long productId) {
+        var deleteProductCommand = new DeleteProductCommand(productId);
+        return productCommandService.handle(deleteProductCommand)
+                .onErrorResume(IllegalArgumentException.class, Mono::error)
+                .onErrorResume(throwable -> Mono.error(new RuntimeException("Failed to delete product", throwable)));
     }
 }

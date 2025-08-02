@@ -3,11 +3,10 @@ package pe.upc.edu.productservice.domain.services;
 import pe.upc.edu.productservice.domain.model.aggregates.Product;
 import pe.upc.edu.productservice.domain.model.queries.GetAllProductsQuery;
 import pe.upc.edu.productservice.domain.model.queries.GetProductByIdQuery;
-
-import java.util.List;
-import java.util.Optional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface ProductQueryService {
-   Optional<Product> handle(GetProductByIdQuery query);
-   List<Product> handle(GetAllProductsQuery query);
+   Flux<Product> handle(GetAllProductsQuery query);
+   Mono<Product> handle(GetProductByIdQuery query);
 }

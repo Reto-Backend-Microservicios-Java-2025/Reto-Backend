@@ -15,13 +15,13 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Product Service API")
-                        .version("1.0")
-                        .description("API for Product Service"))
+                        .title("Product Service API (Reactive)")
+                        .version("2.0")
+                        .description("Reactive API for Product Service using WebFlux"))
                 .servers(List.of(
                         new Server()
                                 .url("http://localhost:8010/product-service")
-                                .description("Gateway Server")
+                                .description("Gateway Server (Reactive)")
                 ));
     }
 }
