@@ -43,20 +43,20 @@ spring:
                     #    - Path=/customer-service/**
                     #  filters:
                     #    - StripPrefix=1
-                    # Product Service
+            # Product Service
                     - id: product-service
                       uri: lb://product-service
                       predicates:
                         - Path=/product-service/**
                       filters:
                         - StripPrefix=1
-                    # IAM Service
-                    #- id: iam-service
-                    #  uri: lb://iam-service
-                    #  predicates:
-                    #    - Path=/iam-service/**
-                    #  filters:
-                    #    - StripPrefix=1
+            # IAM Service
+                    - id: iam-service
+                      uri: lb://iam-service
+                      predicates:
+                        - Path=/iam-service/**
+                      filters:
+                        - StripPrefix=1
           discovery:
             locator:
               enabled: true
@@ -106,5 +106,5 @@ springdoc:
       - name: Product Service
         url: /product-service/v3/api-docs
       # IAM Service
-      #- name: IAM Service
-      #  url: /iam-service/v3/api-docs
+      - name: IAM Service
+        url: /iam-service/v3/api-docs

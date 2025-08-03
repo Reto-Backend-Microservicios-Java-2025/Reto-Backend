@@ -11,13 +11,14 @@
         <module name="registry-service" />
         <module name="admin-service" />
       </profile>
-      <profile name="Annotation profile for product-service" enabled="true">
+      <profile name="Annotation profile for iam-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
+        <module name="iam-service" />
         <module name="product-service" />
       </profile>
     </annotationProcessing>
@@ -29,6 +30,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="admin-service" options="-parameters" />
       <module name="gateway-service" options="-parameters" />
+      <module name="iam-service" options="-parameters" />
       <module name="product-service" options="-parameters" />
       <module name="registry-service" options="-parameters" />
       <module name="registry-test-service" options="-parameters" />

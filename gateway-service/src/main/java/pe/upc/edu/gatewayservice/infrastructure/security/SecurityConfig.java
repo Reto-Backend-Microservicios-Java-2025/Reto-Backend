@@ -27,10 +27,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(
                                 "/api/auth/**",
-                                "/api/v1/authentication/**",
-                                "/api/v1/auth/google/**",
-                                "/iam-service/api/v1/auth/google/**",
-                                "/iam-service/api/v1/authentication/**",
+                                "/api/v1/users/**",
+                                "/iam-service/**",
                                 "/product-service/**",
                                 "/customer-service/**",
                                 "/swagger-ui.html",
@@ -39,7 +37,6 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/swagger-config",
                                 "/webjars/**",
-                                "/iam-service/v3/api-docs/**",
                                 "/8010/webjars/**",
                                 "/actuator/**"
                         ).permitAll()
@@ -58,11 +55,11 @@ public class SecurityConfig {
         cors.setAllowedOrigins(List.of(
                 "http://localhost:3000", // Development React App
                 "http://localhost:4200", // Development Angular App
-                "http://localhost:8080", // Development Vue App
                 "http://localhost:8010", // Gateway Swagger
                 "http://localhost:8050", // IAM Service
                 "http://localhost:8020", // Product Service
-                "http://localhost:8030"  // Customer Service
+                "http://localhost:8030",  // Customer Service
+                "http://localhost:8080"  // Administration Service
         ));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         cors.setAllowedHeaders(List.of("*"));
