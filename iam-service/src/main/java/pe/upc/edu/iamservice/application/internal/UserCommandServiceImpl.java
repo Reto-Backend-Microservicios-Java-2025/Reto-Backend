@@ -24,7 +24,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         return userRepository.existsByEmail(command.email())
                 .flatMap(exists -> {
                     if (exists) {
-                        return Mono.error(new RuntimeException("User with email already exists"));
+                        return Mono.error(new RuntimeException("User with this email already exists"));
                     }
                     String encodedPassword = passwordEncoder.encode(command.password());
                     User user = new User(command.email(), encodedPassword);
