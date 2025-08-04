@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import pe.upc.edu.customerservice.application.external.products.ExternalProduct;
+import pe.upc.edu.customerservice.application.external.products.ReactiveExternalProduct;
 import pe.upc.edu.customerservice.domain.model.queries.GetAllClientsQuery;
 import pe.upc.edu.customerservice.domain.model.queries.GetClientByIdQuery;
 import pe.upc.edu.customerservice.domain.model.queries.GetClientByUniqueCode;
@@ -27,14 +27,14 @@ public class ClientController {
 
     private final ClientQueryService clientQueryService;
     private final ClientCommandService clientCommandService;
-    private final ExternalProduct externalProduct;
+    private final ReactiveExternalProduct reactiveExternalProduct;
 
     public ClientController(ClientQueryService clientQueryService,
                             ClientCommandService clientCommandService,
-                            ExternalProduct externalProduct) {
+                            ReactiveExternalProduct reactiveExternalProduct) {
         this.clientQueryService = clientQueryService;
         this.clientCommandService = clientCommandService;
-        this.externalProduct = externalProduct;
+        this.reactiveExternalProduct = reactiveExternalProduct;
     }
 
     @PostMapping
@@ -68,8 +68,8 @@ public class ClientController {
                     return clientQueryService.handle(query);
                 })
                 .flatMap(client -> {
-                    // Obtener productos del cliente de forma asíncrona
-                    return Mono.fromCallable(() -> externalProduct.getProductsByClientId(client.getId()))
+                    // Obtener productos del cliente de forma asíncrona y esperar el resultado
+                    return reactiveExternalProduct.getProductsByClientId(client.getId())
                             .map(products -> new ClientWithProductsResource(
                                     client.getId(),
                                     client.getFullName(),
