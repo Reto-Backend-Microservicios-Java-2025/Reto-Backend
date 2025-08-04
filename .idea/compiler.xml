@@ -17,7 +17,6 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="iam-service" />
         <module name="customer-service" />
@@ -25,6 +24,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="demo-service" target="17" />
       <module name="registry-test-service" target="17" />
     </bytecodeTargetLevel>
   </component>
@@ -32,6 +32,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="admin-service" options="-parameters" />
       <module name="customer-service" options="-parameters" />
+      <module name="demo-service" options="-parameters" />
       <module name="gateway-service" options="-parameters" />
       <module name="iam-service" options="-parameters" />
       <module name="product-service" options="-parameters" />

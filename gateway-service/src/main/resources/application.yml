@@ -18,13 +18,14 @@ spring:
                             - "http://localhost:*"
                             - "https://localhost:*"
                           allowedOrigins:
-                            - "http://localhost:3000"
-                            - "http://localhost:4200"
-                            - "http://localhost:8080"
-                            - "http://localhost:8010"
-                            - "http://localhost:8050"
-                            - "http://localhost:8020"
-                            - "http://localhost:8030"
+                            - "http://localhost:3000" # React app
+                            - "http://localhost:4200" # Angular app
+                            - "http://localhost:8080" # Spring Boot Admin
+                            - "http://localhost:8010" # Gateway Service
+                            - "http://localhost:8050" # IAM Service
+                            - "http://localhost:8020" # Product Service
+                            - "http://localhost:8030" # Customer Service
+                            - "http://localhost:8090" # Eureka Server
                           allowedMethods:
                             - GET
                             - POST
@@ -37,12 +38,12 @@ spring:
                           maxAge: 3600
           routes:
             # Customer Service (pendiente de implementar)
-                    #- id: customer-service
-                    #  uri: lb://customer-service
-                    #  predicates:
-                    #    - Path=/customer-service/**
-                    #  filters:
-                    #    - StripPrefix=1
+                    - id: customer-service
+                      uri: lb://customer-service
+                      predicates:
+                        - Path=/customer-service/**
+                      filters:
+                        - StripPrefix=1
             # Product Service
                     - id: product-service
                       uri: lb://product-service
@@ -100,8 +101,8 @@ springdoc:
     config-url: /v3/api-docs/swagger-config
     urls:
       # Customer Service
-      #- name: Customer Service
-      #  url: /customer-service/v3/api-docs
+      - name: Customer Service
+        url: /customer-service/v3/api-docs
       # Product Service
       - name: Product Service
         url: /product-service/v3/api-docs

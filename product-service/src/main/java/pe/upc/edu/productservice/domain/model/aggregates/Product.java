@@ -1,7 +1,7 @@
 /**
- * Product aggregate
+ * Product aggregates
  * @Summary
- * The product class is an aggregate root that represents a product in the system.
+ * The product class is an aggregates root that represents a product in the system.
  */
 package pe.upc.edu.productservice.domain.model.aggregates;
 
