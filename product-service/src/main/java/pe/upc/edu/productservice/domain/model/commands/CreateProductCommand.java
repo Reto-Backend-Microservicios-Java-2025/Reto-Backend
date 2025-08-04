@@ -9,6 +9,7 @@ package pe.upc.edu.productservice.domain.model.commands;
 import pe.upc.edu.productservice.domain.model.valueobjects.ProductType;
 
 public record CreateProductCommand(
+        Long clientId,
         ProductType productType,
         String name,
         Double balance

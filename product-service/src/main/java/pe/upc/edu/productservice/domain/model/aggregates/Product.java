@@ -24,6 +24,9 @@ public class Product {
     @Id
     private Long id;
 
+    @Column("client_id")
+    private Long clientId;
+
     @Column("product_type")
     private ProductType productType;
 
@@ -33,13 +36,15 @@ public class Product {
     @Column("balance")
     private Double balance;
 
-    public Product(ProductType productType, String name, Double balance) {
+    public Product(Long clientId, ProductType productType, String name, Double balance) {
+        this.clientId = clientId;
         this.productType = productType;
         this.name = name;
         this.balance = balance;
     }
 
     public Product(CreateProductCommand command) {
+        this.clientId = command.clientId();
         this.productType = command.productType();
         this.name = command.name();
         this.balance = command.balance();

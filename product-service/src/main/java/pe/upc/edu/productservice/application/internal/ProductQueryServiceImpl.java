@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import pe.upc.edu.productservice.domain.model.aggregates.Product;
 import pe.upc.edu.productservice.domain.model.queries.GetAllProductsQuery;
 import pe.upc.edu.productservice.domain.model.queries.GetProductByIdQuery;
+import pe.upc.edu.productservice.domain.model.queries.GetProductsByClientIdQuery;
 import pe.upc.edu.productservice.domain.services.ProductQueryService;
 import pe.upc.edu.productservice.infrastructure.persistence.r2dbc.repositories.ProductRepository;
 import reactor.core.publisher.Flux;
@@ -36,5 +37,10 @@ public class ProductQueryServiceImpl implements ProductQueryService {
                 .onErrorResume(throwable -> {
                     return Mono.error(new RuntimeException("Failed to retrieve product", throwable));
                 });
+    }
+
+    @Override
+    public Flux<Product> handle(GetProductsByClientIdQuery query) {
+        return productRepository.findByClientId(query.clientId());
     }
 }

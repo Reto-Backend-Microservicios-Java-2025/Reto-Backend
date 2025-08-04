@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import pe.upc.edu.productservice.domain.model.commands.DeleteProductCommand;
 import pe.upc.edu.productservice.domain.model.queries.GetAllProductsQuery;
 import pe.upc.edu.productservice.domain.model.queries.GetProductByIdQuery;
+import pe.upc.edu.productservice.domain.model.queries.GetProductsByClientIdQuery;
 import pe.upc.edu.productservice.domain.services.ProductCommandService;
 import pe.upc.edu.productservice.domain.services.ProductQueryService;
 import pe.upc.edu.productservice.interfaces.rest.resources.CreateProductResource;
@@ -62,6 +63,13 @@ public class ProductsController {
                 .switchIfEmpty(Mono.error(new RuntimeException("Product not found with ID: " + productId)))
                 .onErrorMap(IllegalArgumentException.class, ex -> ex)
                 .onErrorMap(throwable -> new RuntimeException("Failed to retrieve product", throwable));
+    }
+
+    @GetMapping("/client/{clientId}")
+    public Flux<ProductResource> getProductsByClientId(@PathVariable Long clientId) {
+        var query = new GetProductsByClientIdQuery(clientId);
+        return productQueryService.handle(query)
+                .map(ProductResourceFromEntityAssembler::toResourceFromEntity);
     }
 
     @PutMapping("/{productId}")

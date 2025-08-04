@@ -8,5 +8,5 @@ package pe.upc.edu.productservice.interfaces.rest.resources;
 
 import pe.upc.edu.productservice.domain.model.valueobjects.ProductType;
 
-public record ProductResource(Long id, ProductType productType, String name, Double balance) {
+public record ProductResource(Long id, Long clientId, ProductType productType, String name, Double balance) {
 }

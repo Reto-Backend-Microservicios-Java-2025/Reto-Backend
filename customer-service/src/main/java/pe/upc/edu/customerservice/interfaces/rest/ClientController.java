@@ -4,11 +4,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import pe.upc.edu.customerservice.application.external.products.ExternalProduct;
 import pe.upc.edu.customerservice.domain.model.queries.GetAllClientsQuery;
+import pe.upc.edu.customerservice.domain.model.queries.GetClientByIdQuery;
 import pe.upc.edu.customerservice.domain.model.queries.GetClientByUniqueCode;
 import pe.upc.edu.customerservice.domain.services.ClientCommandService;
 import pe.upc.edu.customerservice.domain.services.ClientQueryService;
 import pe.upc.edu.customerservice.interfaces.rest.resources.ClientResource;
+import pe.upc.edu.customerservice.interfaces.rest.resources.ClientWithProductsResource;
 import pe.upc.edu.customerservice.interfaces.rest.resources.CreateClientResource;
 import pe.upc.edu.customerservice.interfaces.rest.transform.ClientResourceFromEntityAssembler;
 import pe.upc.edu.customerservice.interfaces.rest.transform.CreateClientCommandFromResourceAssembler;
@@ -24,10 +27,14 @@ public class ClientController {
 
     private final ClientQueryService clientQueryService;
     private final ClientCommandService clientCommandService;
+    private final ExternalProduct externalProduct;
 
-    public ClientController(ClientQueryService clientQueryService, ClientCommandService clientCommandService) {
+    public ClientController(ClientQueryService clientQueryService,
+                            ClientCommandService clientCommandService,
+                            ExternalProduct externalProduct) {
         this.clientQueryService = clientQueryService;
         this.clientCommandService = clientCommandService;
+        this.externalProduct = externalProduct;
     }
 
     @PostMapping
@@ -51,7 +58,34 @@ public class ClientController {
     }
 
     @GetMapping("/{encryptedCode}")
-    public Mono<ClientResource> getClientByEncryptedCode(@PathVariable String encryptedCode) {
+    public Mono<ClientWithProductsResource> getClientByEncryptedCode(@PathVariable String encryptedCode) {
+        return Mono.fromCallable(() -> {
+                    String decrypted = EncryptionUtil.decrypt(encryptedCode);
+                    return Long.valueOf(decrypted);
+                })
+                .flatMap(uniqueCode -> {
+                    var query = new GetClientByUniqueCode(uniqueCode);
+                    return clientQueryService.handle(query);
+                })
+                .flatMap(client -> {
+                    // Obtener productos del cliente de forma asíncrona
+                    return Mono.fromCallable(() -> externalProduct.getProductsByClientId(client.getId()))
+                            .map(products -> new ClientWithProductsResource(
+                                    client.getId(),
+                                    client.getFullName(),
+                                    client.getFullLastName(),
+                                    client.getTypedocument().toString(),
+                                    client.getDocumentNumber(),
+                                    client.getUniqueCode(),
+                                    products
+                            ));
+                })
+                .onErrorResume(throwable -> Mono.empty());
+    }
+
+    // Endpoint adicional para obtener solo la info del cliente (sin productos)
+    @GetMapping("/{encryptedCode}/basic")
+    public Mono<ClientResource> getClientBasicByEncryptedCode(@PathVariable String encryptedCode) {
         return Mono.fromCallable(() -> {
                     String decrypted = EncryptionUtil.decrypt(encryptedCode);
                     return Long.valueOf(decrypted);
@@ -62,5 +96,16 @@ public class ClientController {
                 })
                 .map(ClientResourceFromEntityAssembler::toResourceFromEntity)
                 .onErrorResume(throwable -> Mono.empty());
+    }
+
+    // Get Client By id
+    @GetMapping("/id/{clientId}")
+    public Mono<ClientResource> getClientById(@PathVariable Long clientId) {
+        var query = new GetClientByIdQuery(clientId);
+        return clientQueryService.handle(query)
+                .map(ClientResourceFromEntityAssembler::toResourceFromEntity)
+                .switchIfEmpty(Mono.error(new RuntimeException("Client not found with ID: " + clientId)))
+                .onErrorMap(IllegalArgumentException.class, ex -> ex)
+                .onErrorMap(throwable -> new RuntimeException("Failed to retrieve client", throwable));
     }
 }
