@@ -1,5 +1,6 @@
 package pe.upc.edu.iamservice.interfaces.rest;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/v1/users")
+@Tag(name = "Authentication", description = "Auth Endpoints")
 @RequiredArgsConstructor
 public class UsersController {
 

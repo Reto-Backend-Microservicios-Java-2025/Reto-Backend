@@ -1,5 +1,6 @@
 package pe.upc.edu.productservice.interfaces.rest;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import pe.upc.edu.productservice.domain.model.commands.DeleteProductCommand;
@@ -20,6 +21,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping(value = "/api/v1/products", produces = APPLICATION_JSON_VALUE)
+@Tag(name = "Products", description = "Product Endpoints")
 public class ProductsController {
 
     private final ProductQueryService productQueryService;
