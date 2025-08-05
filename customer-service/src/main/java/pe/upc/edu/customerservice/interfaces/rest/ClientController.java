@@ -19,7 +19,6 @@ import pe.upc.edu.customerservice.infrastructure.EncryptionUtil;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@CrossOrigin(origins = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE })
 @RestController
 @RequestMapping(value = "/api/v1/clients", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Clients", description = "Client Endpoints")
