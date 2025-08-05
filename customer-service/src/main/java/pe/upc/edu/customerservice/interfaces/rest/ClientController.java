@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import pe.upc.edu.customerservice.application.external.products.ReactiveExternalProduct;
+import pe.upc.edu.customerservice.domain.model.commands.DeleteClientCommand;
 import pe.upc.edu.customerservice.domain.model.queries.GetAllClientsQuery;
 import pe.upc.edu.customerservice.domain.model.queries.GetClientByIdQuery;
 import pe.upc.edu.customerservice.domain.model.queries.GetClientByUniqueCode;
@@ -106,5 +107,14 @@ public class ClientController {
                 .switchIfEmpty(Mono.error(new RuntimeException("Client not found with ID: " + clientId)))
                 .onErrorMap(IllegalArgumentException.class, ex -> ex)
                 .onErrorMap(throwable -> new RuntimeException("Failed to retrieve client", throwable));
+    }
+
+    @DeleteMapping("/{clientId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteClient(@PathVariable Long clientId) {
+        var deleteClientCommand = new DeleteClientCommand(clientId);
+        return clientCommandService.handle(deleteClientCommand)
+                .onErrorResume(IllegalArgumentException.class, Mono::error)
+                .onErrorResume(throwable -> Mono.error(new RuntimeException("Failed to delete product", throwable)));
     }
 }
