@@ -1,0 +1,14 @@
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+maven-wrapper.jar
+.mvn/
+src/
+*.iml
+.idea/
+target/classes/
+target/test-classes/
+target/maven-archiver/
+target/maven-status/

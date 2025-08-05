@@ -6,7 +6,7 @@ spring:
       client:
         url: https://admin-service-app.azurewebsites.net
   main:
-    web-application-type: reactive # Explicitly set to reactive
+    web-application-type: reactive
   cloud:
     gateway:
       server:
@@ -15,19 +15,10 @@ spring:
             cors-configurations:
               '[/**]':
                 allowedOriginPatterns:
+                  - "https://*.azurewebsites.net"
                   - "http://localhost:*"
                   - "https://localhost:*"
-                  - "https://*.azurewebsites.net"
                 allowedOrigins:
-                  - "http://localhost:3000" # React app
-                  - "http://localhost:4200" # Angular app
-                  - "http://localhost:8080" # Spring Boot Admin
-                  - "http://localhost:8010" # Gateway Service
-                  - "http://localhost:8050" # IAM Service
-                  - "http://localhost:8020" # Product Service
-                  - "http://localhost:8030" # Customer Service
-                  - "http://localhost:8090" # Eureka Server
-                  # Azure Services
                   - "https://admin-service-app.azurewebsites.net"
                   - "https://registry-service-app.azurewebsites.net"
                   - "https://product-service-app-1754370901.azurewebsites.net"
@@ -43,21 +34,18 @@ spring:
                 allowCredentials: true
                 maxAge: 3600
           routes:
-            # Customer Service (pendiente de implementar)
-            - id: customer-service
-              uri: lb://customer-service
-              predicates:
-                - Path=/customer-service/**
-              filters:
-                - StripPrefix=1
-            # Product Service
             - id: product-service
               uri: lb://product-service
               predicates:
                 - Path=/product-service/**
               filters:
                 - StripPrefix=1
-            # IAM Service
+            - id: customer-service
+              uri: lb://customer-service
+              predicates:
+                - Path=/customer-service/**
+              filters:
+                - StripPrefix=1
             - id: iam-service
               uri: lb://iam-service
               predicates:
@@ -71,6 +59,7 @@ spring:
 
 server:
   port: 8010
+  forward-headers-strategy: native
 
 management:
   endpoints:
@@ -104,15 +93,11 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
-    # Configuración para usar el gateway como servidor base
     config-url: /v3/api-docs/swagger-config
     urls:
-      # Customer Service
-      - name: Customer Service
-        url: /customer-service/v3/api-docs
-      # Product Service
       - name: Product Service
         url: /product-service/v3/api-docs
-      # IAM Service
+      - name: Customer Service
+        url: /customer-service/v3/api-docs
       - name: IAM Service
         url: /iam-service/v3/api-docs

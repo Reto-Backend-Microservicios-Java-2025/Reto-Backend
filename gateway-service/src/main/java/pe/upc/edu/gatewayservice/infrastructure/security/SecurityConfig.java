@@ -50,7 +50,8 @@ public class SecurityConfig {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedOriginPatterns(List.of(
                 "http://localhost:*", // Allow all localhost ports
-                "https://localhost:*" // Allow HTTPS localhost
+                "https://localhost:*", // Allow HTTPS localhost
+                "https://*.azurewebsites.net" // Allow all Azure websites
         ));
         cors.setAllowedOrigins(List.of(
                 "http://localhost:3000", // Development React App
@@ -58,8 +59,13 @@ public class SecurityConfig {
                 "http://localhost:8010", // Gateway Swagger
                 "http://localhost:8050", // IAM Service
                 "http://localhost:8020", // Product Service
-                "http://localhost:8030",  // Customer Service
-                "http://localhost:8080"  // Administration Service
+                "http://localhost:8030", // Customer Service
+                "http://localhost:8080", // Administration Service
+                // Azure Services
+                "https://admin-service-app.azurewebsites.net", // Admin Service
+                "https://registry-service-app.azurewebsites.net", // Registry Service
+                "https://product-service-app-1754370901.azurewebsites.net", // Product Service
+                "https://gateway-service-app.azurewebsites.net" // Gateway Service
         ));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         cors.setAllowedHeaders(List.of("*"));
