@@ -37,7 +37,7 @@ spring:
                           allowCredentials: true
                           maxAge: 3600
           routes:
-            # Customer Service (pendiente de implementar)
+            # Customer Service
                     - id: customer-service
                       uri: lb://customer-service
                       predicates:
