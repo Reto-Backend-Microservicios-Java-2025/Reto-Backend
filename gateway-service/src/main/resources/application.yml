@@ -14,50 +14,104 @@ spring:
           global-cors:
             cors-configurations:
               '[/**]':
-                          allowedOriginPatterns:
-                            - "http://localhost:*"
-                            - "https://localhost:*"
-                          allowedOrigins:
-                            - "http://localhost:3000" # React app
-                            - "http://localhost:4200" # Angular app
-                            - "http://localhost:8080" # Spring Boot Admin
-                            - "http://localhost:8010" # Gateway Service
-                            - "http://localhost:8050" # IAM Service
-                            - "http://localhost:8020" # Product Service
-                            - "http://localhost:8030" # Customer Service
-                            - "http://localhost:8090" # Eureka Server
-                          allowedMethods:
-                            - GET
-                            - POST
-                            - PUT
-                            - DELETE
-                            - OPTIONS
-                            - PATCH
-                          allowedHeaders: "*"
-                          allowCredentials: true
-                          maxAge: 3600
+                allowedOriginPatterns:
+                  - "http://localhost:*"
+                  - "https://localhost:*"
+                allowedOrigins:
+                  - "http://localhost:3000" # React app
+                  - "http://localhost:4200" # Angular app
+                  - "http://localhost:8080" # Spring Boot Admin
+                  - "http://localhost:8010" # Gateway Service
+                  - "http://localhost:8050" # IAM Service
+                  - "http://localhost:8020" # Product Service
+                  - "http://localhost:8030" # Customer Service
+                  - "http://localhost:8090" # Eureka Server
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                  - PATCH
+                allowedHeaders: "*"
+                allowCredentials: true
+                maxAge: 3600
           routes:
+            # OpenAPI Documentation Routes (MUST BE FIRST)
+            # Customer Service API Docs
+            - id: customer-service-api-docs
+              uri: lb://CUSTOMER-SERVICE
+              predicates:
+                - Path=/customer-service/v3/api-docs/**
+              filters:
+                - StripPrefix=1
+
+            # Product Service API Docs
+            - id: product-service-api-docs
+              uri: lb://product-service
+              predicates:
+                - Path=/product-service/v3/api-docs/**
+              filters:
+                - StripPrefix=1
+
+            # IAM Service API Docs
+            - id: iam-service-api-docs
+              uri: lb://iam-service
+              predicates:
+                - Path=/iam-service/v3/api-docs/**
+              filters:
+                - StripPrefix=1
+
+            # Swagger UI Resources (for each service)
+            # Customer Service Swagger UI
+            - id: customer-service-swagger-ui
+              uri: lb://CUSTOMER-SERVICE
+              predicates:
+                - Path=/customer-service/swagger-ui/**
+              filters:
+                - StripPrefix=1
+
+            # Product Service Swagger UI
+            - id: product-service-swagger-ui
+              uri: lb://product-service
+              predicates:
+                - Path=/product-service/swagger-ui/**
+              filters:
+                - StripPrefix=1
+
+            # IAM Service Swagger UI
+            - id: iam-service-swagger-ui
+              uri: lb://iam-service
+              predicates:
+                - Path=/iam-service/swagger-ui/**
+              filters:
+                - StripPrefix=1
+
+            # Main Service Routes (AFTER documentation routes)
             # Customer Service
-                    - id: customer-service
-                      uri: lb://customer-service
-                      predicates:
-                        - Path=/customer-service/**
-                      filters:
-                        - StripPrefix=1
+            - id: customer-service
+              uri: lb://CUSTOMER-SERVICE
+              predicates:
+                - Path=/customer-service/**
+              filters:
+                - StripPrefix=1
+
             # Product Service
-                    - id: product-service
-                      uri: lb://product-service
-                      predicates:
-                        - Path=/product-service/**
-                      filters:
-                        - StripPrefix=1
+            - id: product-service
+              uri: lb://product-service
+              predicates:
+                - Path=/product-service/**
+              filters:
+                - StripPrefix=1
+
             # IAM Service
-                    - id: iam-service
-                      uri: lb://iam-service
-                      predicates:
-                        - Path=/iam-service/**
-                      filters:
-                        - StripPrefix=1
+            - id: iam-service
+              uri: lb://iam-service
+              predicates:
+                - Path=/iam-service/**
+              filters:
+                - StripPrefix=1
+
           discovery:
             locator:
               enabled: true
@@ -86,14 +140,18 @@ eureka:
 
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.springframework.security.web: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty: DEBUG
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: TRACE
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: TRACE
+    org.springframework.web.reactive.function.client: DEBUG
+    reactor.netty.http.client: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
@@ -103,9 +161,17 @@ springdoc:
       # Customer Service
       - name: Customer Service
         url: /customer-service/v3/api-docs
+        display-name: Customer Service API
       # Product Service
       - name: Product Service
         url: /product-service/v3/api-docs
+        display-name: Product Service API
       # IAM Service
       - name: IAM Service
         url: /iam-service/v3/api-docs
+        display-name: IAM Service API
+    # Configuración adicional para mejor experiencia
+    try-it-out-enabled: true
+    operations-sorter: alpha
+    tags-sorter: alpha
+    doc-expansion: none
